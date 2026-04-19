@@ -25,6 +25,7 @@ interface User {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [guestMode, setGuestMode] = useState(false);
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [score, setScore] = useState(0);
   const [gameEnded, setGameEnded] = useState(false);
@@ -47,11 +48,11 @@ export default function App() {
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // Initialize game when user logs in
+  // Initialize game when user logs in or enters guest mode
   useEffect(() => {
-    if (!user) return;
+    if (!user && !guestMode) return;
     initializeGame();
-  }, [user?.id]);
+  }, [user?.id, guestMode]);
 
   // Save score when game ends
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function App() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setGuestMode(false);
   };
 
   const openBox = (boxId: number) => {
@@ -95,13 +97,26 @@ export default function App() {
     });
   };
 
-  if (!user) {
-    return <AuthPage onLogin={setUser} />;
+  if (!user && !guestMode) {
+    return <AuthPage onLogin={setUser} onGuest={() => setGuestMode(true)} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 flex flex-col items-center">
-      <UserHeader user={user} onLogout={handleLogout} />
+      {user ? (
+        <UserHeader user={user} onLogout={handleLogout} />
+      ) : (
+        <div className="w-full flex justify-between items-center px-6 py-3 bg-amber-200/80 border-b-2 border-amber-400 backdrop-blur-sm">
+          <span className="text-amber-700 text-sm">Playing as Guest — scores won't be saved</span>
+          <Button
+            onClick={() => setGuestMode(false)}
+            variant="outline"
+            className="text-sm border-amber-500 text-amber-800 hover:bg-amber-300"
+          >
+            Login / Register
+          </Button>
+        </div>
+      )}
       <div className="flex flex-col items-center justify-center p-8 w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl mb-4 text-amber-900">🏴‍☠️ Treasure Hunt Game 🏴‍☠️</h1>
@@ -235,7 +250,7 @@ export default function App() {
           </motion.div>
         )}
 
-        <ScoreHistory refresh={gameEnded} />
+        {user && <ScoreHistory refresh={gameEnded} />}
       </div>
     </div>
   );

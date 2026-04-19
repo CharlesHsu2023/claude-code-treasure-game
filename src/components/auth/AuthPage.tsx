@@ -5,9 +5,10 @@ import RegisterForm from './RegisterForm';
 
 interface Props {
   onLogin: (user: { id: number; email: string }) => void;
+  onGuest?: () => void;
 }
 
-export default function AuthPage({ onLogin }: Props) {
+export default function AuthPage({ onLogin, onGuest }: Props) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
   return (
@@ -28,6 +29,16 @@ export default function AuthPage({ onLogin }: Props) {
             )}
           </CardContent>
         </Card>
+        {onGuest && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={onGuest}
+              className="text-amber-700 text-sm underline hover:text-amber-900"
+            >
+              Play as Guest (scores won't be saved)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
